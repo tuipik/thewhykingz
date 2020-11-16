@@ -1,64 +1,77 @@
+import aiohttp_jinja2
 from aiohttp import web
-from aiohttp.web_exceptions import HTTPBadRequest
-from umongo import ValidationError
-import schemas
-import services
-from config import config
+
+from models import CarManager
 
 
-routes = web.RouteTableDef()
-BASE_URL = config.base_url
+@aiohttp_jinja2.template("index.html")
+async def index(request):
+    if request.query:
+        return {"cars": await CarManager.search(request.query)}
+    return {"cars": await CarManager.get()}
 
 
-@routes.get('/api/v1/cars')
-async def list_cars(request: web.Request) -> web.Response:
-    manufacturer = services.get_query_param(request)
-    if manufacturer:
-        cars = await services.get_manufacturer_cars(manufacturer)
-        return web.json_response([car.dump() async for car in cars], status=200)
-    cars = await services.get_all_cars()
-    return web.json_response([car.dump() async for car in cars], status=200)
+@aiohttp_jinja2.template("detail_car.html")
+async def car_detail(request):
+    car_id = request.match_info["car_id"]
+    validated_car_id = CarManager.validate_object_id(car_id)
+    car = await CarManager.get_car_by_id(validated_car_id)
+    return {"car": car.dump()}
 
 
-@routes.post('/api/v1/cars')
-async def create_car(request: web.Request) -> web.Response:
-    try:
-        schema = schemas.CarSchema(strict=True)
-        data = schema.load(await request.json()).data
-    except ValidationError as error:
-        raise HTTPBadRequest(reason=error.messages)
+@aiohttp_jinja2.template("create_car.html")
+async def create_car(request):
 
-    car = await services.create_car(data)
-    return web.json_response(car.dump(), status=201)
-
-
-@routes.get(r'/api/v1/cars/{car_id:\w{24}}')
-async def get_car(request: web.Request) -> web.Response:
-    car_id = services.validate_object_id(request.match_info['car_id'])
-    car = await services.get_car_by_id(car_id)
-
-    return web.json_response(car.dump(), status=200)
-
-
-@routes.put(r'/api/v1/cars/{car_id:\w{24}}')
-async def update_car_data(request: web.Request) -> web.Response:
-    car_id = services.validate_object_id(request.match_info['car_id'])
-
-    try:
-        schema = schemas.UpdateCarSchema(strict=True)
-        data = schema.load(await request.json()).data
-    except ValidationError as error:
-        raise HTTPBadRequest(reason=error.messages)
-
-    car = await services.update_car(car_id, data)
-
-    return web.json_response(car.dump(), status=200)
+    if request.method == "POST":
+        request_body = await request.post()
+        created, data = await CarManager.create(request_body)
+        if created:
+            return aiohttp_jinja2.render_template(
+                "detail_car.html", request, context={"car": data.dump(), "error": {}}
+            )
+        return aiohttp_jinja2.render_template(
+            "create_car.html", request, context={"car": request_body, "errors": data}
+        )
+    return {
+        "car": {
+            "manufacturer": "",
+            "model": "",
+            "colour": "",
+            "release_year": "",
+            "vin_code": "",
+        },
+        "errors": {},
+    }
 
 
-@routes.delete(r'/api/v1/cars/{car_id:\w{24}}')
-async def delete_car(request: web.Request) -> web.Response:
-    car_id = services.validate_object_id(request.match_info['car_id'])
-    await services.delete_car(car_id)
+@aiohttp_jinja2.template("update_car.html")
+async def update_car(request):
+    car_id = request.match_info["car_id"]
+    validated_car_id = CarManager.validate_object_id(car_id)
+    car = await CarManager.get_car_by_id(validated_car_id)
+    return {"car": car.dump(), "errors": {}}
 
-    return web.json_response({}, status=204)
 
+@aiohttp_jinja2.template("update_car.html")
+async def update_car_apply(request):
+    if request.method == "POST":
+        car_id = CarManager.validate_object_id(request.match_info["car_id"])
+        car = await CarManager.get_car_by_id(car_id)
+        request_body = await request.post()
+        updated, data = await CarManager.update(car, request_body)
+        if updated:
+            return aiohttp_jinja2.render_template(
+                "detail_car.html", request, context={"car": data.dump(), "error": data}
+            )
+        response_car = {**request_body, "id": str(car_id)}
+        return aiohttp_jinja2.render_template(
+            "update_car.html", request, context={"car": response_car, "errors": data}
+        )
+
+
+async def delete_car(request):
+    car_id = request.match_info["car_id"]
+    validated_car_id = CarManager.validate_object_id(car_id)
+    car = await CarManager.get_car_by_id(validated_car_id)
+    deleted = {"car": await CarManager.delete(car)}
+    raise web.HTTPSeeOther(location=f"/")
