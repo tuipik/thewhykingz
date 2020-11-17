@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./app:/app
+    command: >
+      sh -c "python main.py"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=27017
+      - DB_NAME=cars
+      - PORT=5000
+      - HOST=0.0.0.0
+    depends_on:
+      - db
+
+  db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./db_data:/data/db

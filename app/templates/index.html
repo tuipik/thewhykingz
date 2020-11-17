@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+    <div class="card-body">
+        {% for car in cars %}
+        <div class="car mt-5">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tbody class="table-active">
+                    <tr>
+                        <td>ID</td>
+                        <td>{{ car["id"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Manufacturer</td>
+                        <td style="text-transform: uppercase;">{{ car["manufacturer"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Model</td>
+                        <td>{{ car["model"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Colour</td>
+                        <td>{{ car["colour"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>Year of release</td>
+                        <td>{{ car["release_year"] }}</td>
+                    </tr>
+                    <tr>
+                        <td>VIN code</td>
+                        <td>{{ car["vin_code"] }}</td>
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+            <div class="nav justify-content-end">
+                <button type="button" class="btn btn-outline-info ">
+                    <a href="{{ url('car-detail', car_id=car['id']) }}">Details</a>
+                </button>
+                <button type="button" class="btn btn-outline-info">
+                    <a href="{{ url('update-car', car_id=car['id']) }}">Edit car</a>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+{% endblock %}}

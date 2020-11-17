@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block method_name %}<h3>Edit car</h3> {% endblock %}
+
+{% block content %}
+
+<form action="{{ url('update-car', car_id=car['id']) }}" method="post" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="InputManufacturer">Manufacturer</label>
+        <input type="text" class="form-control" id="InputManufacturer" name="manufacturer"
+               value="{{ car['manufacturer'] }}">
+        {% if errors['manufacturer'] %}
+        <div class="alert alert-warning" role="alert">
+            {{ errors['manufacturer'] }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="InputModel">Model</label>
+        <input type="text" class="form-control" id="InputModel" name="model" value="{{ car['model'] }}">
+        {% if errors['model'] %}
+        <div class="alert alert-warning" role="alert">
+            {{ errors['model'] }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="InputColour">Colour</label>
+        <input type="text" class="form-control" id="InputColour" name="colour" value="{{ car['colour'] }}">
+        {% if errors['colour'] %}
+        <div class="alert alert-warning" role="alert">
+            {{ errors['colour'] }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="InputReleaseYear">Year of release</label>
+        <input type="text" class="form-control" id="InputReleaseYear" name="release_year"
+               value="{{ car['release_year'] }}">
+        {% if errors['release_year'] %}
+        <div class="alert alert-warning" role="alert">
+            {{ errors['release_year'] }}
+        </div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="InputVinCode">VIN code</label>
+        <input type="text" class="form-control" id="InputVinCode" name="vin_code" value="{{ car['vin_code'] }}">
+        {% if errors['vin_code'] %}
+        <div class="alert alert-warning" role="alert">
+            {{ errors['vin_code'] }}
+        </div>
+        {% endif %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+{% endblock %}
