@@ -14,16 +14,6 @@ class Config:
     def BASE_URL(self):
         return f"http://{self.HOST}:{self.PORT}"
 
-    def __str__(self) -> str:
-        return f"mongodb_uri={self.MONGODB_URI}, debug={self.DEBUG}"
-
-
-class TestConfig(Config):
-    def make_default_test_uri(self):
-        return f"mongodb://{self.DB_HOST}:{self.DB_PORT}/items_test"
-
-    MONGODB_URI = os.environ.get("MONGODB_TEST_URI", make_default_test_uri)
-    DEBUG = True
-
 
 config = Config()
+
